@@ -1,0 +1,113 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Token {
+  id         String   @id @default(uuid())
+  type       TokenType
+  userId     String
+  user       User     @relation(fields: [userId], references: [id])
+  token      String
+  date       DateTime @default(now())
+  expiration DateTime @default(now())
+}
+
+model User {
+  id     String  @id @default(uuid())
+  firstName String
+  lastName  String
+  email     String   @unique
+  password  String
+  role Role @default(USER)
+  tokens Token[]
+  sale   Sale[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum TokenType {
+  EMAIL
+  PASSWORD
+  CODE
+}
+
+enum Role {
+  ADMIN
+  USER
+}
+
+enum ProductCategory {
+  BODY
+  BLUSA
+  POLO
+  TOP
+  VESTIDO
+  ENTERIZO
+}
+
+enum MaterialType {
+  SUPLEX
+  VIENA
+  RIP_GRUESO
+  OTROS
+  HILO
+  SCUBA
+  CUERINA
+  BABY_RIP
+  ALGODON_JERSEY
+  SEDA
+  SHANEL
+  WAFER
+  CHALIS
+  SLINKY
+  SEDA_FRANCESA
+  LINO
+  PRADA
+  CATANIA
+  ASTURIA
+}
+
+model Product {
+  id          String          @id @default(cuid())
+  name        String
+  category    ProductCategory
+  material    MaterialType
+  size        String          @default("estandar")
+  color       String @default("colores comerciales")
+  price       Float
+  stock       Int            @default(0)
+  isActive    Boolean         @default(true)
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  saleItems   SaleItem[]   
+}
+
+model SaleItem {
+  id        String   @id @default(cuid())
+  saleId    String  
+  sale      Sale     @relation(fields: [saleId], references: [id])
+  productId String  
+  product   Product  @relation(fields: [productId], references: [id])
+  quantity  Int    
+  price     Float    
+  subtotal  Float   
+  createdAt DateTime @default(now())
+
+  @@index([saleId])
+  @@index([productId])
+}
+
+model Sale {
+  id          String     @id @default(cuid())
+  userId      String     
+  user        User       @relation(fields: [userId], references: [id])
+  items       SaleItem[] 
+  total       Float      
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+}
