@@ -1,18 +1,23 @@
 import crypto from "crypto";
-import nodemailer from "nodemailer";
-import { prisma } from "../ds.js";
-import bcrypt from "bcryptjs";
+import { prisma } from "../db.js";
+import bcrypt from "bcrypt";
+import emailjs from "@emailjs/browser";
+import { env } from "process";
 
-const transporter = nodemailer.createTransport({
-  host: "smtp.ethereal.email",
-  port: 587,
-  auth: {
-    user: " jeffry.flatley88@ethereal.email",
-    pass: "K2xh56rhwZzBp7F8Tt",
-  },
+// const transporter = nodemailer.createTransport({
+//   host: "smtp.ethereal.email",
+//   port: 587,
+//   auth: {
+//     user: " jeffry.flatley88@ethereal.email",
+//     pass: "K2xh56rhwZzBp7F8Tt",
+//   },
+// });
+
+// const noReplyEmail = "noreply@duermes.com";
+emailjs.init({
+  publicKey: process.env.EMAILJS_PUBLIC_KEY,
+  privateKey: process.env.EMAILJS_PRIVATE_KEY,
 });
-
-const noReplyEmail = "noreply@duermes.com";
 
 function codeGenerator(length) {
   return crypto.randomBytes(length).toString("hex");
@@ -31,7 +36,7 @@ export async function requestReset(req, res) {
     const existingToken = await prisma.token.findFirst({
       where: {
         userId: user.id,
-        type: "password",
+        type: "PASSWORD",
       },
     });
 
@@ -42,11 +47,12 @@ export async function requestReset(req, res) {
       });
     }
 
-    const token = codeGenerator(100);
+    const token = codeGenerator(50);
+    console.log(token);
     await prisma.token.create({
       data: {
         userId: user.id,
-        type: "password",
+        type: "PASSWORD",
         token: token,
         expiration: new Date(Date.now() + 1000 * 60 * 30),
       },
@@ -55,24 +61,46 @@ export async function requestReset(req, res) {
     const domainURL = `https://localhost:${process.env.PORT}/reset-password/submit`;
     const resetLink = `${domainURL}?resetToken=${encodeURIComponent(token)}`;
 
-    const emailContent = resetPasswordEmail
-      .replace(/{{name}}/g, user.firstName)
-      .replace(/{{link}}/g, resetLink);
+    // const emailContent = resetPasswordEmail
+    //   .replace(/{{name}}/g, user.firstName)
+    //   .replace(/{{link}}/g, resetLink);
 
-    await transporter.sendMail({
-      from: {
-        name: "duermes",
-        address: noReplyEmail,
+    // await transporter.sendMail({
+    //   from: {
+    //     name: "duermes",
+    //     address: noReplyEmail,
+    //   },
+    //   to: user.email,
+    //   subject: `Restablecer contraseña - ${user.firstName}`,
+    //   html: emailContent,
+    // });
+
+    const email = await emailjs.send(
+      "service_uwv3agh",
+      "template_ffrzwpd",
+      {
+        name: user.firstName,
+        link: resetLink,
+        to_email: user.email,
       },
-      to: user.email,
-      subject: `Restablecer contraseña - ${user.firstName}`,
-      html: emailContent,
-    });
+      {
+        publicKey: env(EMAILJS_PUBLIC_KEY),
+        privateKey: env(EMAILJS_PRIVATE_KEY),
+      }
+    );
 
-    res.status(200).json({ message: "Se envió el correo!" });
+    if (!email) {
+      await prisma.token.delete({ where: { token: token } });
+      return res.status(400).json({ message: "¡No se pudo enviar el correo!" });
+    }
+
+    res.status(200).json({
+      message:
+        "Revisa tu bandeja de entrada para poder actualizar tu contraseña.",
+    });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ message: "Internal Server Error" });
+    res.status(400).json({ message: "Internal Server Error" });
   }
 }
 

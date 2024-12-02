@@ -1,0 +1,15 @@
+{
+  "sqltools.connections": [
+    {
+      "mysqlOptions": {
+        "authProtocol": "default",
+        "enableSsl": "Disabled"
+      },
+      "previewLimit": 50,
+      "server": "localhost",
+      "driver": "MySQL",
+      "connectString": "mysql://u1_H0fylNkd4Q:kwBbN!dP3%5Erz7%40OkXQyaQqYK@172.93.110.184:3636/s1_js-proyecto",
+      "name": "DB"
+    }
+  ]
+}
