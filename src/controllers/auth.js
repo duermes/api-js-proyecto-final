@@ -1,30 +1,44 @@
 import crypto from "crypto";
 import { prisma } from "../db.js";
 import bcrypt from "bcrypt";
-import emailjs from "@emailjs/browser";
-import { env } from "process";
+import { resetPasswordEmail } from "../emails/resetPassword.js";
+import nodemailer from "nodemailer";
+// import emailjs from "@emailjs/browser";
 
-// const transporter = nodemailer.createTransport({
-//   host: "smtp.ethereal.email",
-//   port: 587,
-//   auth: {
-//     user: " jeffry.flatley88@ethereal.email",
-//     pass: "K2xh56rhwZzBp7F8Tt",
-//   },
-// });
-
-// const noReplyEmail = "noreply@duermes.com";
-emailjs.init({
-  publicKey: process.env.EMAILJS_PUBLIC_KEY,
-  privateKey: process.env.EMAILJS_PRIVATE_KEY,
+const transporter = nodemailer.createTransport({
+  host: "smtp.ethereal.email",
+  port: 587,
+  auth: {
+    user: " jeffry.flatley88@ethereal.email",
+    pass: "K2xh56rhwZzBp7F8Tt",
+  },
 });
+
+const noReplyEmail = "noreply@duermes.com";
+// emailjs.init({
+//   publicKey: process.env.EMAILJS_PUBLIC_KEY,
+//   privateKey: process.env.EMAILJS_PRIVATE_KEY,
+// });
 
 function codeGenerator(length) {
   return crypto.randomBytes(length).toString("hex");
 }
 
+async function cleanExpiredTokens() {
+  const now = new Date();
+  const res = await prisma.token.deleteMany({
+    where: {
+      expiration: {
+        lt: now,
+      },
+    },
+  });
+  console.log(`Response of cleanExpiredTokens ${res}`);
+}
+
 export async function requestReset(req, res) {
   try {
+    cleanExpiredTokens();
     const user = await prisma.user.findUnique({
       where: { email: req.body.email },
     });
@@ -58,41 +72,41 @@ export async function requestReset(req, res) {
       },
     });
 
-    const domainURL = `https://localhost:${process.env.PORT}/reset-password/submit`;
+    const domainURL = `http://localhost:${process.env.APP_PORT}/reset-password/submit`;
     const resetLink = `${domainURL}?resetToken=${encodeURIComponent(token)}`;
 
-    // const emailContent = resetPasswordEmail
-    //   .replace(/{{name}}/g, user.firstName)
-    //   .replace(/{{link}}/g, resetLink);
+    const emailContent = resetPasswordEmail
+      .replace(/{{name}}/g, user.firstName)
+      .replace(/{{link}}/g, resetLink);
 
-    // await transporter.sendMail({
-    //   from: {
-    //     name: "duermes",
-    //     address: noReplyEmail,
-    //   },
-    //   to: user.email,
-    //   subject: `Restablecer contraseña - ${user.firstName}`,
-    //   html: emailContent,
-    // });
-
-    const email = await emailjs.send(
-      "service_uwv3agh",
-      "template_ffrzwpd",
-      {
-        name: user.firstName,
-        link: resetLink,
-        to_email: user.email,
+    await transporter.sendMail({
+      from: {
+        name: "duermes",
+        address: noReplyEmail,
       },
-      {
-        publicKey: env(EMAILJS_PUBLIC_KEY),
-        privateKey: env(EMAILJS_PRIVATE_KEY),
-      }
-    );
+      to: "jeffry.flatley88@ethereal.email",
+      subject: `Restablecer contraseña - ${user.firstName}`,
+      html: emailContent,
+    });
 
-    if (!email) {
-      await prisma.token.delete({ where: { token: token } });
-      return res.status(400).json({ message: "¡No se pudo enviar el correo!" });
-    }
+    // const email = await emailjs.send(
+    //   "service_uwv3agh",
+    //   "template_ffrzwpd",
+    //   {
+    //     name: user.firstName,
+    //     link: resetLink,
+    //     to_email: user.email,
+    //   },
+    //   {
+    //     publicKey: process.env.EMAIL_JS_PUBLIC_KEY,
+    //     privateKey: process.env.EMAIL_JS_PRIVATE_KEY,
+    //   }
+    // );
+
+    // if (!email) {
+    //   await prisma.token.delete({ where: { token: token } });
+    //   return res.status(400).json({ message: "¡No se pudo enviar el correo!" });
+    // }
 
     res.status(200).json({
       message:
@@ -107,23 +121,39 @@ export async function requestReset(req, res) {
 export async function resetPassword(req, res) {
   try {
     const token = req.body.token;
-    const tokenData = await prisma.token.delete({
+    const password = req.body.password;
+
+    let tokenData;
+    const tokenRecord = await prisma.token.findUnique({
       where: { token: token },
     });
+    if (tokenRecord) {
+      tokenData = await prisma.token.delete({
+        where: { id: tokenRecord.id },
+      });
+    } else {
+      console.log("Token no encontrado");
+      return res.status(400).json({
+        message: "Token no encontrado o inválido, intenta de nuevo.",
+      });
+    }
 
     if (!tokenData || tokenData.expiration < new Date()) {
       return res.status(400).json({
         message: "Token no encontrado o inválido, intenta de nuevo.",
       });
     }
-
-    hashedPassword = bcrypt.hash(req.body.password, 10);
+    const hashedPassword = await bcrypt.hash(password, 10);
+    console.log(`hashedPassword: ${hashedPassword}`);
     const user = await prisma.user.update({
       where: { id: tokenData.userId },
       data: {
         password: hashedPassword,
       },
     });
+    if (user) {
+      return res.status(200).json({ message: "¡Contraseña actualizada!" });
+    }
   } catch (error) {
     console.error(error);
     res.status(404).json({ message: "Internal Server Error" });

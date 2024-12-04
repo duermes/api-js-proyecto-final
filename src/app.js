@@ -1,8 +1,12 @@
 import express from "express";
 import user from "./routes/user.js";
 import auth from "./routes/auth.js";
+import diary from "./routes/diary.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 app.use(express.json());
@@ -21,6 +25,7 @@ const port = process.env.PORT || 3050;
 
 app.use("/auth", user);
 app.use("/auth", auth);
+app.use("/diary", diary);
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);
