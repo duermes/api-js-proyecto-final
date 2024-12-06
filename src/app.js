@@ -9,16 +9,33 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const app = express();
+
+const allowedOrigins = [
+  "http://localhost:3000",
+  "https://www.duermes.me",
+  "https://duermes.me",
+  "www.duermes.me",
+
+  "https://js-proyecto-final.vercel.app",
+];
+
+app.use(
+  cors({
+    origin: function (origin, callback) {
+      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+  })
+);
+
 app.use(express.json());
 app.use(cookieParser());
-
-const corsOptions = {
-  origin: "*",
-  credentials: true,
-  optionSuccessStatus: 200,
-};
-
-app.use(app.use(cors(corsOptions)));
 
 app.use(express.urlencoded({ extended: true }));
 
