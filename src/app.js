@@ -11,7 +11,14 @@ dotenv.config();
 export const app = express();
 app.use(express.json());
 app.use(cookieParser());
-app.use(cors());
+
+const corsOptions = {
+  origin: "*",
+  credentials: true,
+  optionSuccessStatus: 200,
+};
+
+app.use(app.use(cors(corsOptions)));
 
 app.use(express.urlencoded({ extended: true }));
 
