@@ -15,7 +15,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:3000",
-      "http://js-proyecto-final.vercel.app/, https://www.duermes.me",
+      "http://js-proyecto-final.vercel.app/, http://www.duermes.me",
     ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
