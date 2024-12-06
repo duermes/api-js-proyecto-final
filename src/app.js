@@ -9,8 +9,23 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const app = express();
-app.options("https://www.duermes.me", cors());
-
+const corsOptions = {
+  origin: [
+    "http://localhost:3000",
+    "https://www.duermes.me",
+    "https://duermes.me",
+    "http://localhost:3050",
+    "https://api-js-proyecto.vercel.app",
+  ],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "Access-Control-Allow-Methods",
+    "Access-Control-Request-Headers",
+  ],
+  credentials: true,
+  enablePreflight: true,
+};
 app.use(
   cors({
     origin: [
@@ -26,15 +41,18 @@ app.use(
       "Content-Type",
       "Authorization",
       "Access-Control-Allow-Origin",
+      "Access-Control-Allow-Methods",
+      "Access-Control-Request-Headers",
     ],
     exposedHeaders: [
       "Content-Type",
       "Authorization",
       "Access-Control-Allow-Origin",
     ],
+    enablePreflight: true,
   })
 );
-app.options("*", cors());
+app.options("*", cors(corsOptions));
 
 app.all("", function (req, res, next) {
   res.header("Access-Control-Allow-Origin", "https://www.duermes.me");
