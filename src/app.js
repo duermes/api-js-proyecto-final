@@ -11,10 +11,7 @@ dotenv.config();
 
 export const app = express();
 app.use(helmet());
-app.use(helmet.contentSecurityPolicy());
-app.use(helmet.referrerPolicy({ policy: "same-origin" }));
-app.use(helmet.permittedCrossDomainPolicies());
-app.use(helmet.hidePoweredBy());
+app.use(helmet.permittedCrossDomainPolicies(true));
 const corsOptions = {
   origin: [
     "http://localhost:3000",
