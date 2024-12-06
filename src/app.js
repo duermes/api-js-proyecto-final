@@ -10,6 +10,11 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const app = express();
+app.use(helmet());
+app.use(helmet.contentSecurityPolicy());
+app.use(helmet.referrerPolicy({ policy: "same-origin" }));
+app.use(helmet.permittedCrossDomainPolicies());
+app.use(helmet.hidePoweredBy());
 const corsOptions = {
   origin: [
     "http://localhost:3000",
@@ -28,9 +33,10 @@ const corsOptions = {
   ],
   credentials: true,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  preflightContinue: false,
 };
 app.use(cors(corsOptions));
-app.use(helmet());
+
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
