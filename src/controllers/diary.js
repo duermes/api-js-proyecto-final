@@ -14,17 +14,18 @@ export async function getEntries(req, res) {
       orderBy: { createdAt: "desc" },
     });
 
+    const entriesInfo = diaries.map((diary) => {
+      return {
+        id: diary.id,
+        title: diary.title,
+        content: diary.content,
+        createdAt: diary.createdAt,
+      };
+    });
+
     if (!diaries) {
       return res.status(400).json({ message: "Diarios no encontrados" });
     }
-
-    const entriesInfo = {
-      id: diary.id,
-      title: diary.title,
-      createdAt: diary.createdAt,
-      content: diary.entries,
-    };
-
     res.status(200).json(entriesInfo);
   } catch (error) {
     console.error(error);
@@ -34,21 +35,28 @@ export async function getEntries(req, res) {
 
 export async function createEntry(req, res) {
   try {
-    const { title, content, diaryId } = req.body;
-    const diary = await prisma.diary.findUnique({
-      where: { id: diaryId },
-    });
-    if (!diary) {
-      return res.status(400).json({ message: "Diario no encontrado" });
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(40).json({ message: "No autenticado" });
     }
-    const entry = await prisma.entry.create({
+    const session = jwt.verify(token, process.env.JWT_SECRET);
+
+    const { title, content } = req.body;
+
+    const entry = await prisma.diary.create({
       data: {
         title,
         content,
-        diaryId,
+        userId: session.userId,
       },
     });
-    res.status(200).json(entry);
+    const entryInfo = {
+      id: entry.id,
+      title: entry.title,
+      content: entry.content,
+      createdAt: entry.createdAt,
+    };
+    res.status(200).json(entryInfo);
   } catch (error) {
     console.error(error);
     res.status(400).json({ message: "Internal Server Error" });
@@ -57,21 +65,26 @@ export async function createEntry(req, res) {
 
 export async function updateEntry(req, res) {
   try {
-    const { title, content, entryId } = req.body;
-    const entry = await prisma.entry.findUnique({
-      where: { id: entryId },
-    });
-    if (!entry) {
-      return res.status(400).json({ message: "Entrada no encontrada" });
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(40).json({ message: "No autenticado" });
     }
-    const updatedEntry = await prisma.entry.update({
-      where: { id: entryId },
+    const session = jwt.verify(token, process.env.JWT_SECRET);
+
+    const updatedEntry = await prisma.diary.update({
+      where: { id: req.body.entryId, userId: session.userId },
       data: {
-        title,
-        content,
+        title: req.body.title,
+        content: req.body.content,
       },
     });
-    res.status(200).json(updatedEntry);
+
+    const entryInfo = {
+      id: updatedEntry.id,
+      title: updatedEntry.title,
+      content: updatedEntry.content,
+    };
+    res.status(200).json(entryInfo);
   } catch (error) {
     console.error(error);
     res.status(400).json({ message: "Internal Server Error" });
@@ -80,17 +93,28 @@ export async function updateEntry(req, res) {
 
 export async function deleteEntry(req, res) {
   try {
+    const token = req.cookies.token;
+    if (!token) {
+      return res.status(40).json({ message: "No autenticado" });
+    }
+    const session = jwt.verify(token, process.env.JWT_SECRET);
+
     const { entryId } = req.body;
-    const entry = await prisma.entry.findUnique({
-      where: { id: entryId },
+    const entry = await prisma.diary.findUnique({
+      where: { id: entryId, userId: session.userId },
     });
     if (!entry) {
       return res.status(400).json({ message: "Entrada no encontrada" });
     }
-    await prisma.entry.delete({
+    const deleted = await prisma.diary.delete({
       where: { id: entryId },
     });
-    res.status(200).json({ message: "Entrada eliminada" });
+
+    if (!deleted) {
+      return res.status(400).json({ message: "Entrada no eliminada" });
+    } else {
+      res.status(200).json({ message: "Entrada eliminada" });
+    }
   } catch (error) {
     console.error(error);
     res.status(400).json({ message: "Internal Server Error" });

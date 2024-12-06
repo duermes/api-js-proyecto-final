@@ -72,7 +72,7 @@ export async function requestReset(req, res) {
       },
     });
 
-    const domainURL = `http://localhost:${process.env.APP_PORT}/reset-password/submit`;
+    const domainURL = `${process.env.APP_URL}/reset-password/submit`;
     const resetLink = `${domainURL}?resetToken=${encodeURIComponent(token)}`;
 
     const emailContent = resetPasswordEmail
