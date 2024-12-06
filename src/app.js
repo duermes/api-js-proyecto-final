@@ -10,7 +10,14 @@ dotenv.config();
 
 export const app = express();
 const corsOptions = {
-  origin: "*",
+  origin: [
+    "http://localhost:3000",
+    "https://www.duermes.me",
+    "https://duermes.me",
+    "http://localhost:3050",
+    "https://api-js-proyecto.vercel.app",
+    "https://js-proyecto-final.vercel.app",
+  ],
   allowedHeaders: [
     "Content-Type",
     "Authorization",
