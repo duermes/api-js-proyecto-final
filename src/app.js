@@ -4,6 +4,7 @@ import auth from "./routes/auth.js";
 import diary from "./routes/diary.js";
 import cors from "cors";
 import cookieParser from "cookie-parser";
+import helmet from "helmet";
 
 import dotenv from "dotenv";
 dotenv.config();
@@ -29,7 +30,7 @@ const corsOptions = {
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
 };
 app.use(cors(corsOptions));
-
+app.use(helmet());
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
