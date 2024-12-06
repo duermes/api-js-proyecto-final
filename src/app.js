@@ -10,33 +10,25 @@ dotenv.config();
 
 export const app = express();
 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://www.duermes.me",
-  "https://duermes.me",
-  "www.duermes.me",
-
-  "https://js-proyecto-final.vercel.app",
-];
-
 app.use(
   cors({
-    origin: function (origin, callback) {
-      if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"));
-      }
-    },
+    origin: ["http://localhost:3000", "https://www.duermes.me"],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Access-Control-Allow-Origin",
+    ],
+    exposedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "Access-Control-Allow-Origin",
+    ],
   })
 );
-
 app.use(express.json());
 app.use(cookieParser());
-
 app.use(express.urlencoded({ extended: true }));
 
 const port = process.env.PORT || 3050;
