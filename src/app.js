@@ -12,6 +12,7 @@ dotenv.config();
 export const app = express();
 app.use(helmet());
 app.use(helmet.permittedCrossDomainPolicies(true));
+
 const corsOptions = {
   origin: [
     "http://localhost:3000",

@@ -98,6 +98,7 @@ export async function login(req, res) {
         maxAge: 3 * 60 * 60 * 1000,
       })
       .status(200)
+      .header("Access-Control-Allow-Credentials", "true")
       .json({ message: "¡Inicio de sesión exitoso!" });
   } catch (error) {
     console.error("Error en login:", error);
@@ -136,7 +137,10 @@ export async function getUser(req, res) {
       role: user.role,
     };
 
-    res.status(200).json(userInfo);
+    res
+      .status(200)
+      .json(userInfo)
+      .header("Access-Control-Allow-Credentials", "true");
   } catch (error) {
     console.log(error);
     res.status(400).json({ message: "¡Algo salió mal!" });
