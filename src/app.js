@@ -9,10 +9,17 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const app = express();
+app.options("https://www.duermes.me", cors());
 
 app.use(
   cors({
-    origin: ["http://localhost:3000", "https://www.duermes.me"],
+    origin: [
+      "http://localhost:3000",
+      "https://www.duermes.me",
+      "https://duermes.me",
+      "http://localhost:3050",
+      "https://api-js-proyecto.vercel.app",
+    ],
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: [
