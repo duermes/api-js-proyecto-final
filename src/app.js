@@ -10,40 +10,54 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const app = express();
-app.use(helmet());
-app.use(helmet.permittedCrossDomainPolicies(true));
-
-const corsOptions = {
-  origin: [
-    "http://localhost:3000",
-    "https://www.duermes.me",
-    "https://duermes.me",
-    "http://localhost:3050",
-    "https://api-js-proyecto.vercel.app",
-    "https://js-proyecto-final.vercel.app",
-  ],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "Access-Control-Allow-Origin",
-    "Access-Control-Allow-Methods",
-    "Access-Control-Request-Headers",
-  ],
-  credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  preflightContinue: false,
-};
-app.use(cors(corsOptions));
-
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
 
-const port = process.env.PORT || 3050;
+app.use(
+  helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" },
+    crossOriginOpenerPolicy: { policy: "same-origin" },
+  })
+);
+
+const corsOptions = {
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      "http://localhost:3000",
+      "https://www.duermes.me",
+      "https://duermes.me",
+      "http://localhost:3050",
+      "https://api-js-proyecto.vercel.app",
+      "https://js-proyecto-final.vercel.app",
+    ];
+
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: [
+    "Content-Type",
+    "Authorization",
+    "X-Requested-With",
+    "Accept",
+  ],
+  exposedHeaders: ["set-cookie"],
+};
+
+app.use(cors(corsOptions));
 
 app.use("/auth", user);
 app.use("/auth", auth);
 app.use("/diary", diary);
+
+app.options("*", cors(corsOptions));
+
+const port = process.env.PORT || 3050;
 
 app.listen(port, () => {
   console.log(`Server listening on port ${port}`);

@@ -53,7 +53,6 @@ export async function newUser(req, res) {
 
 export async function login(req, res) {
   try {
-    res.header("Access-Control-Allow-Origin", "https://www.duermes.me");
     const user = await prisma.user.findUnique({
       where: { email: req.body.email },
     });
@@ -109,8 +108,6 @@ export async function login(req, res) {
 
 export async function getUser(req, res) {
   try {
-    res.header("Access-Control-Allow-Origin", "https://www.duermes.me");
-
     const token = req.cookies.token;
     if (!token) {
       return res.status(40).json({ message: "No autenticado" });
@@ -140,10 +137,7 @@ export async function getUser(req, res) {
       role: user.role,
     };
 
-    res
-      .status(200)
-      .json(userInfo)
-      .header("Access-Control-Allow-Credentials", "true");
+    res.status(200).json(userInfo);
   } catch (error) {
     console.log(error);
     res.status(400).json({ message: "¡Algo salió mal!" });
