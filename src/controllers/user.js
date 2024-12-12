@@ -43,8 +43,12 @@ export async function newUser(req, res) {
         lastName: req.body.lastName,
       },
     });
+    res.setHeader(
+      "Access-Control-Allow-Origin",
+      "https://js-proyecto-final.vercel.app"
+    );
 
-    res.status(200).json({ message: "¡Usuario creado exitosamente!" });
+    res.res.status(200).json({ message: "¡Usuario creado exitosamente!" });
   } catch (error) {
     console.error("Error creating new user:", error);
     res.status(400).json({ message: "¡Algo salió mal!" });
@@ -90,6 +94,10 @@ export async function login(req, res) {
         expiresIn: "3h",
       });
     }
+    res.setHeader(
+      "Access-Control-Allow-Origin",
+      "https://js-proyecto-final.vercel.app"
+    );
 
     res
       .cookie("token", sessionId, {
@@ -136,6 +144,10 @@ export async function getUser(req, res) {
       lastName: user.lastName,
       role: user.role,
     };
+    res.setHeader(
+      "Access-Control-Allow-Origin",
+      "https://js-proyecto-final.vercel.app"
+    );
 
     res.status(200).json(userInfo);
   } catch (error) {
@@ -145,5 +157,10 @@ export async function getUser(req, res) {
 }
 
 export async function logout(req, res) {
+  res.setHeader(
+    "Access-Control-Allow-Origin",
+    "https://js-proyecto-final.vercel.app"
+  );
+
   res.clearCookie("token").status(200).json({ message: "¡Cerraste sesión!" });
 }

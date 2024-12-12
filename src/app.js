@@ -10,16 +10,16 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const app = express();
+app.use(
+  helmet({
+    crossOriginResourcePolicy: false,
+    crossOriginEmbedderPolicy: false,
+    crossOriginOpenerPolicy: false,
+  })
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use(express.urlencoded({ extended: true }));
-
-app.use(
-  helmet({
-    crossOriginResourcePolicy: { policy: "cross-origin" },
-    crossOriginOpenerPolicy: { policy: "same-origin" },
-  })
-);
 
 const corsOptions = {
   origin: function (origin, callback) {
@@ -50,12 +50,11 @@ const corsOptions = {
 };
 
 app.use(cors(corsOptions));
+app.options("*", cors(corsOptions));
 
 app.use("/auth", user);
 app.use("/auth", auth);
 app.use("/diary", diary);
-
-app.options("*", cors(corsOptions));
 
 const port = process.env.PORT || 3050;
 
