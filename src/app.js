@@ -10,6 +10,7 @@ import dotenv from "dotenv";
 dotenv.config();
 
 export const app = express();
+
 const customCors = (req, res, next) => {
   res.setHeader("Access-Control-Allow-Credentials", true);
   res.setHeader(
@@ -31,50 +32,20 @@ const customCors = (req, res, next) => {
   }
   next();
 };
-
 app.use(customCors);
 
-app.use(
-  helmet({
-    crossOriginResourcePolicy: false,
-    crossOriginEmbedderPolicy: false,
-    crossOriginOpenerPolicy: false,
-  })
-);
-app.use(express.json());
-app.use(cookieParser());
-app.use(express.urlencoded({ extended: true }));
-
+/*
 const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      "http://localhost:3000",
-      "https://www.duermes.me",
-      "https://duermes.me",
-      "http://localhost:3050",
-      "https://api-js-proyecto.vercel.app",
-      "https://js-proyecto-final.vercel.app",
-    ];
-
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error("Not allowed by CORS"));
-    }
-  },
+  origin: "http://localhost:3000",
   credentials: true,
-  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: [
-    "Content-Type",
-    "Authorization",
-    "X-Requested-With",
-    "Accept",
-  ],
-  exposedHeaders: ["set-cookie"],
 };
 
 app.use(cors(corsOptions));
-app.options("*", cors(corsOptions));
+*/
+app.use(helmet());
+app.use(express.json());
+app.use(cookieParser());
+app.use(express.urlencoded({ extended: true }));
 
 app.use("/auth", user);
 app.use("/auth", auth);
