@@ -13,10 +13,7 @@ export const app = express();
 
 const customCors = (req, res, next) => {
   res.setHeader("Access-Control-Allow-Credentials", true);
-  res.setHeader(
-    "Access-Control-Allow-Origin",
-    "https://js-proyecto-final.vercel.app"
-  );
+  res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
   res.setHeader(
     "Access-Control-Allow-Methods",
     "GET,OPTIONS,PATCH,DELETE,POST,PUT"
